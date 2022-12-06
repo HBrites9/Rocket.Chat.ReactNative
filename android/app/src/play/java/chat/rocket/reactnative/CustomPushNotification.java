@@ -136,7 +136,7 @@ public class CustomPushNotification extends PushNotification {
         notificationDismiss(notification, notificationId);
 
         // if notificationType is null (RC < 3.5) or notificationType is different of message-id-only or notification was loaded successfully
-        if (ejson.notificationType == null || !ejson.notificationType.equals("message-id-only") || notificationLoaded) {
+        if (ejson.notificationType == null /* || !ejson.notificationType.equals("message-id-only") */ || notificationLoaded) {
             notificationStyle(notification, notificationId, bundle);
             notificationReply(notification, notificationId, bundle);
 
