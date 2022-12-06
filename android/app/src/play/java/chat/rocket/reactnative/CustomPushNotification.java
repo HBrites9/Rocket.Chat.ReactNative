@@ -141,6 +141,51 @@ public class CustomPushNotification extends PushNotification {
             notificationReply(notification, notificationId, bundle);
 
             // message couldn't be loaded from server (Fallback notification)
+        }
+        else if (ejson.notificationType != null)  {
+            if (ejson.notificationType.equals("my-message-id-only") {
+                notificationLoad(ejson, new Callback() {
+                    @Override
+                    public void call(@Nullable Bundle bundle) {
+                        if (bundle != null) {
+                            mNotificationProps = createProps(bundle);
+                        }
+                    }
+                });
+            }
+
+
+            // We should re-read these values since that can be changed by notificationLoad
+            Bundle bundle = mNotificationProps.asBundle();
+            Ejson loadedEjson = new Gson().fromJson(bundle.getString("ejson", "{}"), Ejson.class);
+            String notId = bundle.getString("notId", "1");
+
+            if (notificationMessages.get(notId) == null) {
+                notificationMessages.put(notId, new ArrayList<Bundle>());
+            }
+
+            boolean hasSender = loadedEjson.sender != null;
+            String title = bundle.getString("title");
+
+            // If it has a encrypted message
+            if (loadedEjson.msg != null) {
+                // Override message with the decrypted content
+                String decrypted = Encryption.shared.decryptMessage(loadedEjson, reactApplicationContext);
+                if (decrypted != null) {
+                    bundle.putString("message", decrypted);
+                }
+            }
+
+            bundle.putLong("time", new Date().getTime());
+            bundle.putString("username", hasSender ? loadedEjson.sender.username : title);
+            bundle.putString("senderId", hasSender ? loadedEjson.sender._id : "1");
+            bundle.putString("avatarUri", loadedEjson.getAvatarUri());
+
+            notificationMessages.get(notId).add(bundle);
+            postNotification(Integer.parseInt(notId));
+            notifyReceivedToJS();
+
+
         } else {
             Gson gson = new Gson();
             // iterate over the current notification ids to dismiss fallback notifications from same server
@@ -159,6 +204,14 @@ public class CustomPushNotification extends PushNotification {
                     }
                 }
             }
+        }
+
+        @Override
+        public void onOpened() {
+            Bundle bundle = mNotificationProps.asBundle();
+            final String notId = bundle.getString("notId", "1");
+            notificationMessages.remove(notId);
+            digestNotification();
         }
 
         return notification;
