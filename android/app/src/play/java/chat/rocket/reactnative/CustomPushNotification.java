@@ -143,7 +143,7 @@ public class CustomPushNotification extends PushNotification {
             // message couldn't be loaded from server (Fallback notification)
         }
         else if (ejson.notificationType != null)  {
-            if (ejson.notificationType.equals("my-message-id-only") {
+            if (ejson.notificationType.equals("encrypt") {
                 notificationLoad(ejson, new Callback() {
                     @Override
                     public void call(@Nullable Bundle bundle) {
@@ -204,6 +204,7 @@ public class CustomPushNotification extends PushNotification {
                     }
                 }
             }
+            return notification;
         }
 
         @Override
@@ -214,7 +215,6 @@ public class CustomPushNotification extends PushNotification {
             digestNotification();
         }
 
-        return notification;
     }
 
     private void notifyReceivedToJS() {

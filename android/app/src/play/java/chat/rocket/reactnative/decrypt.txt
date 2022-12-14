@@ -1,0 +1,31 @@
+public String decrypthost(final Ejson ejson, final ReactApplicationContext reactContext) {
+        try {
+            this.reactContext = reactContext;
+
+            Room room = readRoom(ejson);
+            if (room == null || room.e2eKey == null) {
+                return null;
+            }
+            String e2eKey = decryptRoomKey(room.e2eKey, ejson);
+            if (e2eKey == null) {
+                return null;
+            }
+
+            String host = ejson.ht;
+            String ht = host.substring(12, host.length());
+            byte[] htData = Base64.decode(ht, Base64.NO_WRAP);
+
+            String b64 = Base64.encodeToString(Arrays.copyOfRange(htData, 16, htData.length), Base64.DEFAULT);
+
+            String decrypted = RCTAes.decrypt(b64, e2eKey, Util.bytesToHex(Arrays.copyOfRange(htData, 0, 16)));
+            byte[] data = Base64.decode(decrypted, Base64.NO_WRAP);
+            Host h = gson.fromJson(new String(data, "UTF-8"), Host.class);
+
+            return h.text;
+        } catch (Exception e) {
+            Log.d("[ROCKETCHAT][E2E]", Log.getStackTraceString(e));
+        }
+
+        return null;
+    }
+
